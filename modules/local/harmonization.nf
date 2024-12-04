@@ -25,22 +25,29 @@ process harmonization {
     if test -z "\$coordinate_system"; then coordinate="1-based"; else coordinate=\$coordinate_system; fi
 
     header_args=\$(utils.py -f $merged -harm_args);
-    
-    main_pysam.py \
-    --sumstats $merged \
-    --vcf ${params.ref}/homo_sapiens-${chrom}.vcf.gz \
-    --hm_sumstats ${chrom}.merged_unsorted.hm \
-    --hm_statfile ${chrom}.merged.log.tsv.gz \
-    \$header_args \
-    --na_rep_in NA \
-    --na_rep_out NA \
-    --coordinate \$coordinate \
-    --palin_mode $palin_mode;
 
-    chr=\$(awk -v RS='\t' '/chromosome/{print NR; exit}' ${chrom}.merged_unsorted.hm)
-    pos=\$(awk -v RS='\t' '/base_pair_location/{print NR; exit}' ${chrom}.merged_unsorted.hm)
+    line_count=\$(wc -l < $merged)
 
-    head -n1 ${chrom}.merged_unsorted.hm > ${chrom}.merged.hm;
-    tail -n+2 ${chrom}.merged_unsorted.hm | sort -n -k\$chr -k\$pos -T\$PWD >> ${chrom}.merged.hm
+    if test "\$line_count" -gt 1; then
+        main_pysam.py \
+        --sumstats $merged \
+        --vcf ${params.ref}/homo_sapiens-${chrom}.vcf.gz \
+        --hm_sumstats ${chrom}.merged_unsorted.hm \
+        --hm_statfile ${chrom}.merged.log.tsv.gz \
+        \$header_args \
+        --na_rep_in NA \
+        --na_rep_out NA \
+        --coordinate \$coordinate \
+        --palin_mode $palin_mode;
+
+        chr=\$(awk -v RS='\t' '/chromosome/{print NR; exit}' ${chrom}.merged_unsorted.hm)
+        pos=\$(awk -v RS='\t' '/base_pair_location/{print NR; exit}' ${chrom}.merged_unsorted.hm)
+
+        head -n1 ${chrom}.merged_unsorted.hm > ${chrom}.merged.hm;
+        tail -n+2 ${chrom}.merged_unsorted.hm | sort -n -k\$chr -k\$pos -T\$PWD >> ${chrom}.merged.hm
+    else
+        head -n1 ${chrom}.merged_unsorted.hm > ${chrom}.merged.hm;
+        touch ${chrom}.merged.log.tsv.gz
+    fi
     """
 }
