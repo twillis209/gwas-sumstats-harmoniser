@@ -47,7 +47,7 @@ process harmonization {
         tail -n+2 ${chrom}.merged_unsorted.hm | sort -n -k\$chr -k\$pos -T\$PWD >> ${chrom}.merged.hm
     else
         head -n1 $merged > ${chrom}.merged.hm;
-        touch ${chrom}.merged.log.tsv.gz
+        #touch ${chrom}.merged.log.tsv.gz
     fi
     """
 }
